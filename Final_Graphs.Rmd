@@ -1,0 +1,208 @@
+---
+title: 'Final Project: Graphs'
+author: "Julie Osborne"
+date: "5/10/2019"
+output: pdf_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(ggplot2)
+mydata<-read.csv('/Users/julieosborne/Desktop/NHEFS.csv', header=TRUE)
+head(mydata)
+
+reduced<-subset(mydata, select=c(death, sex, education, alcoholfreq, exercise, race))
+head(reduced)
+
+newdata1<-na.omit(reduced)
+head(newdata1)
+summary(newdata1)
+nrow(newdata1)
+
+###factor values
+Death<-factor(newdata1$death)
+levels(Death)<-c(0:1)
+newdata1$death<-Death
+
+Sex<-factor(newdata1$sex)
+levels(Sex)<-c(0:1)
+newdata1$sex<-Sex
+
+Education<-factor(newdata1$education)
+levels(Education)<-c(1:5)
+newdata1$education<-Education
+
+#combine no alochol last year & unknown
+Alcoholfreq<-factor(newdata1$alcoholfreq)
+levels(Alcoholfreq)<-c(0,1,2,3,4,4)
+newdata1$alcoholfreq<-Alcoholfreq
+
+Exercise<-factor(newdata1$exercise)
+levels(Exercise)<-c(0,1,2)
+newdata1$exercise<-Exercise
+
+Race<-factor(newdata1$race)
+levels(Race)<-c(0,1)
+newdata1$race<-Race
+
+summary(newdata1)
+```
+#Number of deaths vs. a single variable 
+
+##Figure 1 
+```{r sex}
+ggplot(data.frame(newdata1$sex), aes(x=newdata1$sex)) + geom_bar() + 
+  theme(text=element_text(size=10), plot.title=element_text(hjust=0.5)) + 
+  ylab("Number of Deaths") + ggtitle("Number of Deaths by Sex") + xlab('Sex') +
+  scale_x_discrete(labels=c('Male', 'Female'))
+```  
+
+
+##Figure 2 
+```{r education}
+ggplot(data.frame(newdata1$education), aes(x=newdata1$education)) + geom_bar() + 
+  theme(text=element_text(size=10), plot.title=element_text(hjust=0.5)) + 
+  ylab("Number of Deaths") + ggtitle("Number of Deaths by Level of Education") + 
+  xlab('Level of Education') + scale_x_discrete(labels=c('8th grade or less', 'HS Dropout', 'HS',
+                                                         'College Dropout', 'College or more'))
+```
+
+##Figure 3
+```{r alcohol_frequency}
+ggplot(data.frame(newdata1$alcoholfreq), aes(x=newdata1$alcoholfreq)) + geom_bar() + 
+  theme(text=element_text(size=10),axis.text.x=element_text(angle=45, hjust=1), 
+        plot.title=element_text(hjust=0.5)) + 
+  ylab("Number of Deaths") + ggtitle("Number of Deaths by Alcohol Frequency") + 
+  xlab('Alcohol Frequency') + scale_x_discrete(labels=c('Almost every day','2-3 times/week', 
+                                                        '1-4 times/month','< 12 times/year', 
+                                                        'No alochol last year/unknown'))
+```
+
+##Figure 4 
+```{r exercise}
+ggplot(data.frame(newdata1$exercise), aes(x=newdata1$exercise)) + geom_bar() + 
+  theme(text=element_text(size=10), plot.title=element_text(hjust=0.5)) + 
+  ylab("Number of Deaths") + ggtitle("Number of Deaths by Level of Exercise") + 
+  xlab('Level of Exercise') + scale_x_discrete(labels=c('Much Exercise', 'Moderate Exercise ', 
+                                                        'Little or No Exercise'))
+```
+
+##Figure 5
+```{r race}
+ggplot(data.frame(newdata1$race), aes(x=newdata1$race)) + geom_bar() + 
+  theme(text=element_text(size=10), plot.title=element_text(hjust=0.5)) + 
+  ylab("Number of Deaths") + ggtitle("Number of Deaths by Race") + 
+  xlab('Race') + scale_x_discrete(labels=c('White', 'Black or other'))
+```
+  
+#Number of deaths vs. two variables  
+
+##Figure 6 
+```{r education_sex}
+ggplot(newdata1, aes(newdata1$education, ..count..)) + 
+  geom_bar(aes(fill=newdata1$sex), position="dodge") + theme(text=element_text(size=10), plot.title=element_text(hjust=0.5)) + 
+  ylab("Number of Deaths") + ggtitle("Number of Deaths by Sex & Level of Education") + 
+  scale_fill_discrete(name='Sex', labels=c('Male', 'Female')) + 
+  xlab('Level of Education') + scale_x_discrete(labels=c('8th grade or less','HS Dropout', 'HS',
+                                                          'College Dropout', 'College or more'))
+```
+
+##Figure 7
+```{r sex_alcoholfreq}
+ggplot(newdata1, aes(newdata1$alcoholfreq, ..count..)) + 
+  geom_bar(aes(fill=newdata1$sex), position="dodge") + theme(text=element_text(size=10), axis.text.x=element_text(angle=45, hjust=1), plot.title=element_text(hjust=0.5)) + 
+  ylab("Number of Deaths") + ggtitle("Number of Deaths by Sex & Alcohol Frequency") + 
+  scale_fill_discrete(name='Sex', labels=c('Male', 'Female')) + 
+  xlab('Alcohol Frequency') + scale_x_discrete(labels=c('Almost every day', '2-3 times/week',
+                                                        '1-4 times/month','< 12 times/year', 
+                                                        'No alochol last year/unknown'))
+```
+
+##Figure 8
+```{r sex_exercise}
+ggplot(newdata1, aes(newdata1$exercise, ..count..)) + 
+  geom_bar(aes(fill=newdata1$sex), position="dodge") + theme(text=element_text(size=10),  plot.title=element_text(hjust=0.5)) + 
+  ylab("Number of Deaths") + ggtitle("Number of Deaths by Sex & Level of Exercise") + 
+  scale_fill_discrete(name='Sex', labels=c('Male', 'Female')) + 
+  xlab('Level of Exercise') + scale_x_discrete(labels=c('Much Exercise', 'Moderate Exercise ',
+                                                        'Little or No Exercise'))
+```
+
+##Figure 9
+```{r sex_race}
+ggplot(newdata1, aes(newdata1$race, ..count..)) + 
+  geom_bar(aes(fill=newdata1$sex), position="dodge") + theme(text=element_text(size=10), plot.title=element_text(hjust=0.5)) + 
+  ylab("Number of Deaths") + ggtitle("Number of Deaths by Sex & Race") + 
+  scale_fill_discrete(name='Sex', labels=c('Male', 'Female')) + 
+  xlab('Race') + scale_x_discrete(labels=c('White', 'Black or other'))
+
+```
+
+##Figure 10
+```{r alcoholfreq_education}
+ggplot(newdata1, aes(newdata1$alcoholfreq, ..count..)) + 
+  geom_bar(aes(fill=newdata1$education), position="dodge") + theme(text=element_text(size=10), axis.text.x=element_text(angle=45, hjust=1), plot.title=element_text(hjust=0.5)) + 
+  ylab("Number of Deaths") + ggtitle("Number of Deaths by Alcohol Frequecy & Level of Education")+ 
+  scale_fill_discrete(name='Level of Education', labels=c('8th grade or less','HS Dropout', 'HS',
+                                                          'College Dropout', 'College or more'))+ xlab('Alcohol Frequency') + scale_x_discrete(labels=c('Almost every day', '2-3 times/week',
+                                                        '1-4 times/month','< 12 times/year', 
+                                                        'No alochol last year/unknown'))
+```
+
+##Figure 11
+```{r education_exercise}
+ggplot(newdata1, aes(newdata1$education, ..count..)) + 
+  geom_bar(aes(fill=newdata1$exercise), position="dodge") + theme(text=element_text(size=10), plot.title=element_text(hjust=0.5)) + 
+  ylab("Number of Deaths") + ggtitle("Number of Deaths by Level of Exercise & Level of Education")+ 
+  scale_fill_discrete(name='Level of Exercise', labels=c('Much Exercise', 'Moderate Exercise ', 'Little or No Exercise'))+ 
+  xlab('Level of Education') + scale_x_discrete(labels=c('8th grade or less','HS Dropout', 'HS',
+                                                          'College Dropout', 'College or more'))
+```
+
+##Figure 12
+```{r education_race}
+ggplot(newdata1, aes(newdata1$education, ..count..)) + 
+  geom_bar(aes(fill=newdata1$race), position="dodge") + theme(text=element_text(size=10), plot.title=element_text(hjust=0.5)) + 
+  ylab("Number of Deaths") + ggtitle("Number of Deaths by Race & Level of Education")+ 
+  scale_fill_discrete(name='Race', labels=c('White', 'Black or other'))+ 
+  xlab('Level of Education') + scale_x_discrete(labels=c('8th grade or less','HS Dropout', 'HS',
+                                                          'College Dropout', 'College or more'))
+
+```
+
+##Figure 13
+```{r alcoholfreq_exercise}
+ggplot(newdata1, aes(newdata1$alcoholfreq, ..count..)) + 
+  geom_bar(aes(fill=newdata1$exercise), position="dodge") + theme(text=element_text(size=10),
+                                                              axis.text.x=element_text(angle=45, hjust=1),plot.title=element_text(hjust=0.5)) + 
+  ylab("Number of Deaths") + ggtitle("Number of Deaths by Alcohol Frequency & Level of Exercise")+ 
+  scale_fill_discrete(name='Level of Exercise', labels=c('Much Exercise', 'Moderate Exercise ', 'Little or No Exercise'))+ 
+  xlab('Alcohol Frequency') + scale_x_discrete(labels=c('Almost every day', '2-3 times/week',
+                                                        '1-4 times/month','< 12 times/year', 
+                                                        'No alochol last year/unknown'))
+```
+
+##Figure 14
+```{r alcoholfreq_race}
+ggplot(newdata1, aes(newdata1$alcoholfreq, ..count..)) + 
+  geom_bar(aes(fill=newdata1$race), position="dodge") + theme(text=element_text(size=10),
+                                                              axis.text.x=element_text(angle=45, hjust=1),plot.title=element_text(hjust=0.5)) + 
+  ylab("Number of Deaths") + ggtitle("Number of Deaths by Alcohol Frequency & Race")+ 
+  scale_fill_discrete(name='Race', labels=c('White', 'Black or other'))+ 
+  xlab('Alcohol Frequency') + scale_x_discrete(labels=c('Almost every day', '2-3 times/week',
+                                                        '1-4 times/month','< 12 times/year', 
+                                                        'No alochol last year/unknown'))
+```
+
+##Figure 15
+```{r}
+ggplot(newdata1, aes(newdata1$exercise, ..count..)) + 
+  geom_bar(aes(fill=newdata1$race), position="dodge") + theme(text=element_text(size=10),
+                                                              plot.title=element_text(hjust=0.5)) + 
+  ylab("Number of Deaths") + ggtitle("Number of Deaths by Level of Exercise & Race")+ 
+  scale_fill_discrete(name='Race', labels=c('White', 'Black or other'))+ 
+  xlab('Level of Exercise') + scale_x_discrete(labels=c('Much Exercise', 'Moderate Exercise ', 'Little or No Exercise'))
+
+```
