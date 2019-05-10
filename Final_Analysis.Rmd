@@ -1,0 +1,107 @@
+---
+title: 'Final Project: Analysis'
+author: "Julie Osborne"
+date: "5/10/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(ggplot2)
+mydata<-read.csv('/Users/julieosborne/Desktop/NHEFS.csv', header=TRUE)
+head(mydata)
+
+reduced<-subset(mydata, select=c(death, sex, education, alcoholfreq, exercise, race))
+head(reduced)
+
+newdata1<-na.omit(reduced)
+head(newdata1)
+summary(newdata1)
+nrow(newdata1)
+
+###factor values
+Death<-factor(newdata1$death)
+levels(Death)<-c(0:1)
+newdata1$death<-Death
+
+Sex<-factor(newdata1$sex)
+levels(Sex)<-c(0:1)
+newdata1$sex<-Sex
+
+Education<-factor(newdata1$education)
+levels(Education)<-c(1:5)
+newdata1$education<-Education
+
+#combine no alochol last year & unknown
+Alcoholfreq<-factor(newdata1$alcoholfreq)
+levels(Alcoholfreq)<-c(0,1,2,3,4,4)
+newdata1$alcoholfreq<-Alcoholfreq
+
+Exercise<-factor(newdata1$exercise)
+levels(Exercise)<-c(0,1,2)
+newdata1$exercise<-Exercise
+
+Race<-factor(newdata1$race)
+levels(Race)<-c(0,1)
+newdata1$race<-Race
+
+summary(newdata1)
+
+set.seed(123)
+library(caret)
+training_samples<-createDataPartition(newdata1$death, p=0.7, list=FALSE)
+
+train<-newdata1[training_samples, ]
+test<-newdata1[-training_samples, ]
+```
+
+##Full Model
+```{r full_model}
+model<-glm(death ~ sex + education + alcoholfreq + exercise + race, family=binomial, 
+           data = train)
+summary(model)
+
+anova(model, test='Chisq')
+```
+From the model summary, sex1, education2, education3, education4, education5, and alcoholfreq2 are significant predictors at the 5% level. Then, the ANOVA was run to determine which variables were significant to the model not at their individual levels. These variables are: sex, education, and alcoholfreq.   
+
+##First Reduced Model
+```{r reduced1}
+model_int_red<-glm(death ~ sex + education + alcoholfreq, family=binomial, data=train)
+anova(model, model_int_red, test='Chisq')
+```
+The first reduced model used the variables that were significant from chi-squared test produced from the ANOVA test. This reduced model was then compared to the full model using ANOVA to see if it was a better fit. This produces a p-value of `r format.pval(anova(model, model_int_red, test='Chisq')$'Pr(>Chi)'[2])` > 0.05. This means that the reduced model is not a better fit than the full model. 
+
+##Second Reduced Model
+```{r reduced2}
+model_reduce<-glm(death ~ sex + education, family=binomial,
+                  data=train)
+anova(model, model_reduce, test='Chisq')
+```
+The second reduced model used the variables had all levels significant in the full model. Again, this reduced model was compated to the full model using ANOVA to see if it was a better fit. This produced a p-valued of `r format.pval(anova(model, model_reduce, test='Chisq')$'Pr(>Chi)'[2])` < 0.05. This means that the reduced model is a better fit than the full model, and will be used for prediction comparison.  
+
+```{r}
+summary(model_reduce)
+anova(model_reduce, test='Chisq')
+```
+The summary of the reduced model and the anova test confirm that all levels of sex and education are significant in predicting the likelihood of death.  
+
+##Prediction
+```{r prediction}
+#for full model
+pred_death<-predict(model, newdata=test, type='response')
+death_pred_num<-ifelse(pred_death > 0.5, 1, 0)
+death_pred<-factor(death_pred_num, levels=c(0,1))
+death_actual<-test$death
+mean_full<-mean(death_pred==death_actual)
+
+#for reduced model 
+pred_reduce<-predict(model_reduce, newdata=test, type='response')
+death_pred_num_reduce<-ifelse(pred_reduce > 0.5, 1, 0)
+death_pred_reduce<-factor(death_pred_num_reduce, levels=c(0,1))
+death_actual_reduce<-test$death
+mean_r<-mean(death_pred_reduce==death_actual_reduce)
+```
+The full model prediction accuracy is `r mean_full`.  
+The reduced model prediction accuracy is `r mean_r`.  
